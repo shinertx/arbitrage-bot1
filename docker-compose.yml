@@ -1,0 +1,18 @@
+version: "3"
+services:
+  arbitrage-bot:
+    build: .
+    environment:
+      - COINBASEPRO_API_KEY=${COINBASEPRO_API_KEY}
+      - COINBASEPRO_API_SECRET=${COINBASEPRO_API_SECRET}
+      - COINBASEPRO_API_PASSWORD=${COINBASEPRO_API_PASSWORD}
+      - KRAKEN_API_KEY=${KRAKEN_API_KEY}
+      - KRAKEN_API_SECRET=${KRAKEN_API_SECRET}
+      - BITFINEX_API_KEY=${BITFINEX_API_KEY}
+      - BITFINEX_API_SECRET=${BITFINEX_API_SECRET}
+      - ETH_PROVIDER_URL=${ETH_PROVIDER_URL}
+      - POLY_PROVIDER_URL=${POLY_PROVIDER_URL}
+    restart: always
+  redis:
+    image: redis:alpine
+    restart: always
