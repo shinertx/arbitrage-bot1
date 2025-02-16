@@ -19,10 +19,6 @@ EXCHANGES = {
         "apiKey": os.getenv("KRAKEN_API_KEY"),
         "secret": os.getenv("KRAKEN_API_SECRET"),
     },
-    "bitfinex": {
-        "apiKey": os.getenv("BITFINEX_API_KEY"),
-        "secret": os.getenv("BITFINEX_API_SECRET"),
-    },
 }
 
 # Trading settings
@@ -34,7 +30,7 @@ DAILY_LOSS_LIMIT = 0.01            # 1% daily loss limit.
 # Taker fees (example values; adjust as needed)
 COINBASE_TAKER_FEE = 0.005         # 0.5% fee (for Coinbase sandbox or live)
 KRAKEN_TAKER_FEE = 0.0026          # 0.26%
-BITFINEX_TAKER_FEE = 0.002          # 0.2%
+
 
 # Slippage protection
 SLIPPAGE_PERCENTAGE = 0.001        # 0.1% slippage
