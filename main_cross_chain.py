@@ -17,13 +17,18 @@ logger = setup_logger("MainCrossChain")
 INITIAL_CAPITAL = 10000
 
 async def main_loop():
-    data_feed = DataFeed()
-    scanner = ArbitrageScanner(data_feed)  # Pass data_feed to get volatility data.
+    # Initialize DataFeed asynchronously using the factory method
+    data_feed = await DataFeed.create()
+    
+    # Pass data_feed into ArbitrageScanner so it can calculate volatility
+    scanner = ArbitrageScanner(data_feed)
     risk_manager = RiskManagement(initial_capital=INITIAL_CAPITAL)
     execution_engine = ExecutionEngine(data_feed.exchanges)
     cross_chain = CrossChainArbitrage()
-    token_address = "0xTokenAddressPlaceholder"  # Replace with a real token address when available
-
+    
+    # Replace with your actual token address if needed by the cross-chain module
+    token_address = "0xTokenAddressPlaceholder"
+    
     try:
         while True:
             # --- Single-Chain Arbitrage ---
@@ -63,7 +68,7 @@ async def main_loop():
             
             # --- Cross-Chain Arbitrage ---
             percent_diff = cross_chain.check_arbitrage(token_address)
-            THRESHOLD = 1.0  # Cross-chain arbitrage threshold.
+            THRESHOLD = 1.0  # Cross-chain arbitrage threshold
             if percent_diff >= THRESHOLD:
                 if cross_chain.get_eth_token_price(token_address) < cross_chain.get_poly_token_price(token_address):
                     logger.info("Cross-chain arbitrage: Bridge from Ethereum to Polygon.")
