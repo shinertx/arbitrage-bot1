@@ -4,12 +4,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Exchange API credentials for Coinbase Pro, Kraken, Bitfinex.
+# Use sandbox for Coinbase Advanced Trade API if set to true in your .env file.
+USE_COINBASE_SANDBOX = os.getenv("USE_COINBASE_SANDBOX", "false").lower() == "true"
+
+# Exchange API credentials for Coinbase, Kraken, Bitfinex.
+# For Coinbase, if using sandbox, use your sandbox API keys.
 EXCHANGES = {
-    "coinbasepro": {
-        "apiKey": os.getenv("COINBASEPRO_API_KEY"),
-        "secret": os.getenv("COINBASEPRO_API_SECRET"),
-        "password": os.getenv("COINBASEPRO_API_PASSWORD"),
+    "coinbase": {
+        "apiKey": os.getenv("COINBASE_API_KEY"),
+        "secret": os.getenv("COINBASE_API_SECRET"),
+        "password": os.getenv("COINBASE_API_PASSWORD"),
     },
     "kraken": {
         "apiKey": os.getenv("KRAKEN_API_KEY"),
@@ -28,7 +32,7 @@ RISK_PER_TRADE = 0.001             # Risk 0.1% of capital per trade.
 DAILY_LOSS_LIMIT = 0.01            # 1% daily loss limit.
 
 # Taker fees (example values; adjust as needed)
-COINBASEPRO_TAKER_FEE = 0.005      # 0.5%
+COINBASE_TAKER_FEE = 0.005         # 0.5% fee (for Coinbase sandbox or live)
 KRAKEN_TAKER_FEE = 0.0026          # 0.26%
 BITFINEX_TAKER_FEE = 0.002          # 0.2%
 
@@ -38,7 +42,7 @@ SLIPPAGE_PERCENTAGE = 0.001        # 0.1% slippage
 # Dynamic threshold parameters
 BASE_MIN_PROFIT_THRESHOLD = 0.05   # 5% base threshold
 VOLATILITY_MULTIPLIER = 2.0        # Multiplier for volatility effect
-VOLATILITY_WINDOW = 60             # Number of data points (5 minutes if data every 5 sec)
+VOLATILITY_WINDOW = 60             # Number of data points (approx. 5 minutes if data is every 5 sec)
 
 # Cross‑chain settings
 ETH_PROVIDER_URL = os.getenv("ETH_PROVIDER_URL")
