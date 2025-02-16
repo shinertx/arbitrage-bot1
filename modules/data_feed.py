@@ -2,24 +2,31 @@
 import asyncio
 import numpy as np
 import ccxt.async_support as ccxt
-from ccxt.base.errors import NetworkError, RateLimitExceeded, ExchangeError, InsufficientFunds, InvalidOrder
+from ccxt.base.errors import NetworkError, RateLimitExceeded, ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError
 from config import EXCHANGES, TRADING_PAIR, VOLATILITY_WINDOW
 from modules.logger import setup_logger
 
 logger = setup_logger("DataFeed", log_file="logs/data_feed.log")
+
+# Explicit mapping for async exchanges:
+EXCHANGE_MAPPING = {
+    "coinbase": ccxt.coinbase,
+    "kraken": ccxt.kraken,
+    "bitfinex": ccxt.bitfinex,
+}
 
 async def fetch_order_book_with_retry(exchange, symbol, retries=3, delay=1):
     for attempt in range(retries):
         try:
             return await asyncio.wait_for(exchange.fetch_order_book(symbol), timeout=5)
         except (NetworkError, RateLimitExceeded) as e:
-            logger.error(f"Network/RateLimit error fetching from {exchange.name} (attempt {attempt+1}): {e}. Retrying...")
+            logger.error(f"Network/RateLimit error from {exchange.name} (attempt {attempt+1}): {e}. Retrying...")
             await asyncio.sleep(delay)
         except ExchangeError as e:
-            logger.error(f"Exchange error from {exchange.name} (attempt {attempt+1}): {e}. Might be an API issue.")
+            logger.error(f"Exchange error from {exchange.name} (attempt {attempt+1}): {e}.")
             return None
         except (InsufficientFunds, InvalidOrder) as e:
-            logger.error(f"{type(e).__name__} error from {exchange.name}: {e}. Check account/order.")
+            logger.error(f"{type(e).__name__} from {exchange.name}: {e}. Check account/order.")
             return None
         except Exception as e:
             logger.error(f"Unexpected error from {exchange.name} (attempt {attempt+1}): {e}")
@@ -29,26 +36,35 @@ async def fetch_order_book_with_retry(exchange, symbol, retries=3, delay=1):
 class DataFeed:
     def __init__(self):
         self.exchanges = {}
-        self.mid_prices = {}  # For volatility calculation.
+        self.mid_prices = {}  # For volatility
+
+    @classmethod
+    async def create(cls):
+        self = cls()
         for name, creds in EXCHANGES.items():
             try:
-                exchange_class = getattr(ccxt, name)
+                exchange_class = EXCHANGE_MAPPING.get(name)
+                if not exchange_class:
+                    raise ValueError(f"No mapping for exchange: {name}")
                 instance = exchange_class({
                     'apiKey': creds.get("apiKey"),
                     'secret': creds.get("secret"),
                     'password': creds.get("password", None),
                     'enableRateLimit': True,
                 })
-                # Validate connectivity by fetching balance.
                 try:
-                    asyncio.get_event_loop().run_until_complete(
-                        asyncio.wait_for(instance.fetch_balance(), timeout=5)
-                    )
+                    await asyncio.wait_for(instance.fetch_balance(), timeout=10)
+                    logger.info(f"Successfully connected to {name}")
+                except AuthenticationError as e:
+                    logger.error(f"Authentication error with {name}: {e}. Check API keys.")
+                    continue
                 except Exception as e:
                     logger.error(f"Error validating exchange {name}: {e}")
+                    continue
                 self.exchanges[name] = instance
             except Exception as e:
                 logger.error(f"Error initializing {name}: {e}")
+        return self
 
     async def fetch_order_book(self, exchange, symbol=TRADING_PAIR):
         order_book = await fetch_order_book_with_retry(exchange, symbol)
