@@ -14,9 +14,9 @@ class CrossChainArbitrage:
         self.w3_eth = Web3(Web3.HTTPProvider(self.eth_provider))
         self.w3_poly = Web3(Web3.HTTPProvider(self.poly_provider))
         
-        if not self.w3_eth.is_Connected():
+        if not self.w3_eth.is_connected():
             raise ConnectionError("Failed to connect to Ethereum")
-        if not self.w3_poly.is_Connected():
+        if not self.w3_poly.is_connected():
             raise ConnectionError("Failed to connect to Polygon")
     
     def get_eth_token_price(self, token_address):
